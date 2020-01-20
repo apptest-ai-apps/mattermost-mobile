@@ -1,0 +1,51 @@
+name: react-native CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup kernel for react native, increase watchers
+      run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '1.8'
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12
+    - name: npm install
+      run: |
+        npm install
+    - name: create keystore file, fill key
+      run: |
+        CURPWD=$(pwd)
+        echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > keystore.jks
+        echo "" >> android/gradle.properties
+        echo "MATTERMOST_RELEASE_STORE_FILE=${CURPWD}/keystore.jks" >> android/gradle.properties
+        echo "MATTERMOST_RELEASE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}" >> android/gradle.properties
+        echo "MATTERMOST_RELEASE_KEY_ALIAS=${{ secrets.ALIAS }}" >> android/gradle.properties
+        echo "MATTERMOST_RELEASE_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
+    - name: Override base config
+      run: |
+        mkdir -p assets/override
+        echo "{" > assets/override/config.json
+        echo "  \"DefaultServerUrl\": \"${{ secrets.MATTERMOST_SERVER_URL }}\"," >> assets/override/config.json
+        echo "  \"AutoSelectServerUrl\": true," >> assets/override/config.json
+        echo "  \"ExperimentalUsernamePressIsMention\": true" >> assets/override/config.json
+        echo "}" >> assets/override/config.json
+        make dist/assets
+    - name: Build apk package
+      working-directory: ./android
+      run: |
+        ./gradlew assembleRelease
+    - name: Test app on apptest.ai
+      uses: forcemax/apptestai-test@v1
+      with:
+        accesskey: ${{ secrets.APPTESTAI_KEY }}
+        projectid: 1087
+        packagefile: android/app/build/outputs/apk/release/app-release.apk
