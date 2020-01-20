@@ -30,7 +30,7 @@ jobs:
         echo "MATTERMOST_RELEASE_STORE_PASSWORD=${{ secrets.KEY_STORE_PASSWORD }}" >> android/gradle.properties
         echo "MATTERMOST_RELEASE_KEY_ALIAS=${{ secrets.ALIAS }}" >> android/gradle.properties
         echo "MATTERMOST_RELEASE_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> android/gradle.properties
-    - name: Override base config
+    - name: Override base configs
       run: |
         mkdir -p assets/override
         echo "{" > assets/override/config.json
