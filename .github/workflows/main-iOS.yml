@@ -32,9 +32,11 @@ jobs:
         make dist/assets
     - name: Prepare build
       working-directory: ./ios
+      env:
+        CI: true
       run: |
         pod install
-        yes | fastlane add_plugin find_replace_string
+        fastlane add_plugin find_replace_string
     - name: Build development package using fastlane
       working-directory: ./ios
       env:
