@@ -33,9 +33,9 @@ jobs:
     - name: Prepare build
       working-directory: ./ios
       run: |
-        bundle install
+        bundle init
         pod install
-        yes | fastlane add_plugin find_replace_string
+        yes | bundle exec fastlane add_plugin find_replace_string
     - name: Build development package using fastlane
       working-directory: ./ios
       env:
@@ -47,7 +47,7 @@ jobs:
         MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         MATCH_KEYCHAIN_NAME: ${{ secrets.MATCH_KEYCHAIN_NAME }}
         MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
-      run: fastlane beta
+      run: bundle exec fastlane beta
     - name: Test app on apptest.ai
       uses: forcemax/apptestai-test@v1
       with:
