@@ -18,11 +18,9 @@ jobs:
       with:
         node-version: 12
     - name: use xcode 11.3
-      run: |
-        sudo xcode-select -switch /Applications/Xcode_11.3.app
+      run: sudo xcode-select -switch /Applications/Xcode_11.3.app
     - name: npm install
-      run: |
-        npm install
+      run: npm install
     - name: Override base configs
       run: |
         mkdir -p assets/override
@@ -32,6 +30,12 @@ jobs:
         echo "  \"ExperimentalUsernamePressIsMention\": true" >> assets/override/config.json
         echo "}" >> assets/override/config.json
         make dist/assets
+    - name: Prepare build
+      working-directory: ./ios
+      run: |
+        bundle install
+        pod install
+        yes | fastlane add_plugin find_replace_string
     - name: Build development package using fastlane
       working-directory: ./ios
       env:
@@ -43,10 +47,7 @@ jobs:
         MATCH_GIT_BASIC_AUTHORIZATION: ${{ secrets.MATCH_GIT_BASIC_AUTHORIZATION }}
         MATCH_KEYCHAIN_NAME: ${{ secrets.MATCH_KEYCHAIN_NAME }}
         MATCH_KEYCHAIN_PASSWORD: ${{ secrets.MATCH_KEYCHAIN_PASSWORD }}
-      run: |
-        pod install
-        yes | fastlane add_plugin find_replace_string
-        fastlane beta
+      run: fastlane beta
     - name: Test app on apptest.ai
       uses: forcemax/apptestai-test@v1
       with:
