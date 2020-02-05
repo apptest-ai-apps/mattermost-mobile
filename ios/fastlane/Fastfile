@@ -1,0 +1,161 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+# App identifiers
+MAIN_APP_IDENTIFIER = ENV["APP_BUNDLE_ID"]
+SHARE_APP_IDENTIFIER = ENV["APP_BUNDLE_ID"] + ".MattermostShare"
+NOTIFICATION_APP_IDENTIFIER = ENV["APP_BUNDLE_ID"] + ".NotificationService"
+
+# Provisioning profiles
+PROVISIONING_PROFILE = "match Development " + MAIN_APP_IDENTIFIER
+SHARE_APP_PROVISIONING_PROFILE = "match Development " + SHARE_APP_IDENTIFIER
+NOTIFICATION_APP_PROVISIONING_PROFILE = "match Development ai.apptest.mattermost.NotificationService"
+
+# etc...
+APP_GROUP_IDENTIFIERS = ["group." + MAIN_APP_IDENTIFIER]
+KEYCHAIN_ACCESS_GROUP = [ENV["TEAM_ID"] + MAIN_APP_IDENTIFIER]
+MATCH_APP_IDENTIFIER = "#{MAIN_APP_IDENTIFIER},#{SHARE_APP_IDENTIFIER},#{NOTIFICATION_APP_IDENTIFIER}"
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Build development package"
+
+  def setup_code_signing
+    disable_automatic_code_signing(path: 'Mattermost.xcodeproj', team_id: ENV["TEAM_ID"])
+
+    MATCH_APP_IDENTIFIER.split(',').each do |id|
+      target = 'Mattermost'
+      if id.include? 'NotificationService'
+        target = 'NotificationService'
+      elsif id.include? 'MattermostShare'
+        target = 'MattermostShare'
+      end
+
+      profile = "sigh_#{id}_development"
+
+      update_project_provisioning(
+          xcodeproj: 'Mattermost.xcodeproj',
+          profile: ENV["#{profile}_profile-path"], # optional if you use sigh
+          target_filter: ".*#{target}$", # matches name or type of a target
+          build_configuration: 'Debug',
+          code_signing_identity: 'Apple Development' # optionally specify the codesigning identity
+      )
+    end
+  end
+
+  lane :beta do
+    find_replace_string(
+      path_to_file: './Mattermost.xcodeproj/project.pbxproj',
+      old_string: 'com.mattermost.rnbeta.MattermostShare',
+      new_string: SHARE_APP_IDENTIFIER
+    )
+
+    find_replace_string(
+      path_to_file: './Mattermost.xcodeproj/project.pbxproj',
+      old_string: 'com.mattermost.rnbeta.NotificationService',
+      new_string: NOTIFICATION_APP_IDENTIFIER
+    )
+
+    find_replace_string(
+      path_to_file: './Mattermost.xcodeproj/project.pbxproj',
+      old_string: 'com.mattermost.rnbeta',
+      new_string: MAIN_APP_IDENTIFIER
+    )
+
+    create_keychain(
+      name: ENV["MATCH_KEYCHAIN_NAME"],
+      password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      add_to_search_list: true
+    )
+
+    match(
+      app_identifier: MAIN_APP_IDENTIFIER,
+      type: "development",
+      readonly: true,
+      git_url: ENV["FASTLANE_CERT_REPO"],
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+    )
+
+    match(
+      app_identifier: SHARE_APP_IDENTIFIER,
+      type: "development",
+      readonly: true,
+      git_url: ENV["FASTLANE_CERT_REPO"],
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+    )
+
+    match(
+      app_identifier: NOTIFICATION_APP_IDENTIFIER,
+      type: "development",
+      readonly: true,
+      git_url: ENV["FASTLANE_CERT_REPO"],
+      git_basic_authorization: ENV["MATCH_GIT_BASIC_AUTHORIZATION"],
+      keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+    )
+
+    update_info_plist(
+      plist_path: "Mattermost/Info.plist",
+      app_identifier: MAIN_APP_IDENTIFIER
+    )
+
+    update_info_plist(
+      plist_path: "MattermostShare/Info.plist",
+      app_identifier: SHARE_APP_IDENTIFIER
+    )
+
+    update_info_plist(
+      plist_path: "NotificationService/Info.plist",
+      app_identifier: NOTIFICATION_APP_IDENTIFIER
+    )
+
+    update_app_group_identifiers(
+      entitlements_file: "Mattermost/Mattermost.entitlements",
+      app_group_identifiers: APP_GROUP_IDENTIFIERS
+    )
+
+    update_app_group_identifiers(
+      entitlements_file: "MattermostShare/MattermostShare.entitlements",
+      app_group_identifiers: APP_GROUP_IDENTIFIERS
+    )
+
+    update_app_group_identifiers(
+      entitlements_file: "NotificationService/NotificationService.entitlements",
+      app_group_identifiers: APP_GROUP_IDENTIFIERS
+    )
+
+    setup_code_signing
+
+    build_ios_app(
+      scheme: "Mattermost", 
+      configuration: "Debug",
+      export_method: "development",
+      export_options: {
+        iCloudContainerEnvironment: 'Development'
+      },
+      skip_profile_detection: true,
+      include_bitcode: false,
+      clean: true
+    )
+  end
+end
