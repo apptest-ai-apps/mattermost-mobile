@@ -36,6 +36,7 @@ jobs:
         CI: true
       run: |
         pod install
+        bundle update --bundler
         fastlane add_plugin find_replace_string
     - name: Build development package using fastlane
       working-directory: ./ios
