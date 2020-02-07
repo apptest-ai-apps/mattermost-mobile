@@ -34,13 +34,6 @@ NSString* const NOTIFICATION_UPDATE_BADGE_ACTION = @"update_badge";
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  [self performSelector:@selector(didFinishLaunchingWithOptionsAfterDelay:) withObject:launchOptions afterDelay:0.001];
-
-  return YES;
-}
-
-- (BOOL)didFinishLaunchingWithOptionsAfterDelay:(NSDictionary *)launchOptions
-{
   // Clear keychain on first run in case of reinstallation
   if (![[NSUserDefaults standardUserDefaults] objectForKey:@"FirstRun"]) {
 

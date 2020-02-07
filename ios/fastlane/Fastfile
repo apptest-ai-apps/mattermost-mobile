@@ -31,7 +31,7 @@ MATCH_APP_IDENTIFIER = "#{MAIN_APP_IDENTIFIER},#{SHARE_APP_IDENTIFIER},#{NOTIFIC
 default_platform(:ios)
 
 platform :ios do
-  desc "Build development package"
+  desc "Build beta package"
 
   def setup_code_signing
     disable_automatic_code_signing(path: 'Mattermost.xcodeproj', team_id: ENV["TEAM_ID"])
@@ -167,7 +167,6 @@ platform :ios do
 
     build_ios_app(
       scheme: "Mattermost", 
-      configuration: "Debug",
       export_method: "development",
       export_options: {
         iCloudContainerEnvironment: 'Development'
