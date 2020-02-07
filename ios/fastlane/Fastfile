@@ -47,11 +47,19 @@ platform :ios do
       profile = "sigh_#{id}_development"
 
       update_project_provisioning(
-          xcodeproj: 'Mattermost.xcodeproj',
-          profile: ENV["#{profile}_profile-path"], # optional if you use sigh
-          target_filter: ".*#{target}$", # matches name or type of a target
-          build_configuration: 'Debug',
-          code_signing_identity: 'Apple Development' # optionally specify the codesigning identity
+        xcodeproj: 'Mattermost.xcodeproj',
+        profile: ENV["#{profile}_profile-path"], # optional if you use sigh
+        target_filter: ".*#{target}$", # matches name or type of a target
+        build_configuration: 'Debug',
+        code_signing_identity: 'Apple Development' # optionally specify the codesigning identity
+      )
+  
+      update_project_provisioning(
+        xcodeproj: 'Mattermost.xcodeproj',
+        profile: ENV["#{profile}_profile-path"], # optional if you use sigh
+        target_filter: ".*#{target}$", # matches name or type of a target
+        build_configuration: 'Release',
+        code_signing_identity: 'Apple Development' # optionally specify the codesigning identity
       )
     end
   end
@@ -142,6 +150,11 @@ platform :ios do
     update_app_group_identifiers(
       entitlements_file: "NotificationService/NotificationService.entitlements",
       app_group_identifiers: APP_GROUP_IDENTIFIERS
+    )
+
+    update_keychain_access_groups(
+      entitlements_file: "Mattermost/Mattermost.entitlements",
+      identifiers: ["$(AppIdentifierPrefix)"+MAIN_APP_IDENTIFIER]
     )
 
     setup_code_signing
