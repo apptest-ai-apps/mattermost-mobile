@@ -29,6 +29,7 @@ jobs:
         echo "  \"AutoSelectServerUrl\": true," >> assets/override/config.json
         echo "  \"ExperimentalUsernamePressIsMention\": true" >> assets/override/config.json
         echo "}" >> assets/override/config.json
+        cat assets/override/config.json
         make dist/assets
     - name: Prepare build
       working-directory: ./ios
