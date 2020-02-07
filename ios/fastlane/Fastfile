@@ -83,6 +83,12 @@ platform :ios do
       new_string: MAIN_APP_IDENTIFIER
     )
 
+    find_replace_string(
+      path_to_file: './UploadAttachments/UploadAttachments/MMMConstants.m',
+      old_string: 'com.mattermost.rnbeta',
+      new_string: MAIN_APP_IDENTIFIER
+    )
+
     create_keychain(
       name: ENV["MATCH_KEYCHAIN_NAME"],
       password: ENV["MATCH_KEYCHAIN_PASSWORD"],
