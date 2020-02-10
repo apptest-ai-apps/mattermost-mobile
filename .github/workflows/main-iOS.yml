@@ -55,5 +55,5 @@ jobs:
       uses: forcemax/apptestai-test@v1
       with:
         accesskey: ${{ secrets.APPTESTAI_KEY }}
-        projectid: 1089
+        projectid: 1100
         packagefile: ios/Mattermost.ipa
