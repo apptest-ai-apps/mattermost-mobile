@@ -44,7 +44,7 @@ jobs:
       run: |
         ./gradlew assembleRelease
     - name: Test app on apptest.ai
-      uses: actions/apptestai-test@v1
+      uses: forcemax/apptestai-test@v1
       with:
         accesskey: ${{ secrets.APPTESTAI_KEY }}
         projectid: 1101 
