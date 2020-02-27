@@ -46,6 +46,6 @@ jobs:
     - name: Test app on apptest.ai
       uses: forcemax/apptestai-test@v1
       with:
-        accesskey: ${{ secrets.APPTESTAI_KEY }}
-        projectid: 1101 
-        packagefile: android/app/build/outputs/apk/release/app-release.apk
+        access_key: ${{ secrets.APPTEST_AI_ACCESS_KEY }}
+        project_id: 1101 
+        binary_path: android/app/build/outputs/apk/release/app-release.apk
