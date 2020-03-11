@@ -23,7 +23,6 @@ jobs:
     script: |
       cd ios
       fastlane beta
-      cd ..
     after_success: |
       git clone https://github.com/apptestai/ci_addon
       export binary_path="ios/Mattermost.ipa"
@@ -68,7 +67,6 @@ jobs:
     script: |
       cd android
       ./gradlew assembleRelease
-      cd ..
     after_success: |
       git clone https://github.com/apptestai/ci_addon
       export binary_path="android/app/build/outputs/apk/release/app-release.apk"
