@@ -59,5 +59,5 @@ jobs:
         binary_path: ios/Mattermost.ipa
         use_vo: false
         time_limit: 5
-        login_id: example_id
-        login_pw: example_pw
+        login_id: ${{ secrets.APP_LOGIN_ID }} 
+        login_pw: ${{ secrets.APP_LOGIN_PW }}
