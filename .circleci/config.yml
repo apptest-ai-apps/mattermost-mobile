@@ -1,16 +1,51 @@
 version: 2.1
 orbs:
-  node: circleci/node@1.1.6
+  apptest-ai: apptestai/android-app-test@volatile
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  build-android:
+    environment:
+      JVM_OPTS: -Xmx1536m
+      GRADLE_OPTS: "-XX:+HeapDumpOnOutOfMemoryError -Dorg.gradle.jvmargs=-Xmx1536m -Dorg.gradle.caching=true -Dorg.gradle.configureondemand=true -Dkotlin.compiler.execution.strategy=in-process -Dkotlin.incremental=false"
+    docker:
+      - image: circleci/android:api-29-node
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: npm test
+      - run:
+          name: npm install
+          command: npm install
+      - run:
+          name: create keystore file, fill key
+          command: |
+            CURPWD=$(pwd)
+            echo "$SIGNING_KEY" | base64 --decode > keystore.jks
+            echo "" >> android/gradle.properties
+            echo "MATTERMOST_RELEASE_STORE_FILE=${CURPWD}/keystore.jks" >> android/gradle.properties
+            echo "MATTERMOST_RELEASE_STORE_PASSWORD=$KEY_STORE_PASSWORD" >> android/gradle.properties
+            echo "MATTERMOST_RELEASE_KEY_ALIAS=$ALIAS" >> android/gradle.properties
+            echo "MATTERMOST_RELEASE_PASSWORD=$KEY_PASSWORD" >> android/gradle.properties
+      - run:
+          name: Override base configs
+          command: |
+            mkdir -p assets/override
+            echo "{" > assets/override/config.json
+            echo "  \"DefaultServerUrl\": \"$MATTERMOST_SERVER_URL\"," >> assets/override/config.json
+            echo "  \"AutoSelectServerUrl\": true," >> assets/override/config.json
+            echo "  \"ExperimentalUsernamePressIsMention\": true" >> assets/override/config.json
+            echo "}" >> assets/override/config.json
+            make dist/assets
+      - run:
+          name: Run build
+          working_directory: ./android
+          command: ./gradlew assembleRelease
+      - apptest-ai/run-test:
+          binary_path: "android/app/build/outputs/apk/release/app-release.apk"
+          project_id: "1101"
+      - store_artifacts:
+          path: test-results
+      - store_test_results:
+          path: test-results
+
 workflows:
     build-and-test:
       jobs:
