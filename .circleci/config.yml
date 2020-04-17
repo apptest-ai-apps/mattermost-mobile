@@ -88,3 +88,4 @@ workflows:
     build-and-test:
       jobs:
         - build-android
+        - build-ios
