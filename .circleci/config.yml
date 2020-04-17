@@ -46,6 +46,44 @@ jobs:
       - store_test_results:
           path: test-results
 
+  build-ios:
+    macos:
+      xcode: 11.3.1
+    steps:
+      - checkout
+      - run:
+          name: npm install 
+          command: npm install 
+      - run:
+          name: Override base configs
+          command: |
+            mkdir -p assets/override
+            echo "{" > assets/override/config.json
+            echo "  \"DefaultServerUrl\": \"$MATTERMOST_SERVER_URL\"," >> assets/override/config.json
+            echo "  \"AutoSelectServerUrl\": true," >> assets/override/config.json
+            echo "  \"ExperimentalUsernamePressIsMention\": true" >> assets/override/config.json
+            echo "}" >> assets/override/config.json
+            make dist/assets
+      - run:
+          name: prepare build
+          working_directory: ./ios
+          command: |
+            pod install
+            bundle update --bundler
+            fastlane add_plugin find_replace_string 
+      - run:
+          name: build
+          working_directory: ./ios
+          command: |
+            fastlane beta
+      - apptest-ai/run-test:
+          binary_path: "ios/Mattermost.ipa"
+          project_id: "1100"
+      - store_artifacts:
+          path: test-results
+      - store_test_results:
+          path: test-results
+
 workflows:
     build-and-test:
       jobs:
