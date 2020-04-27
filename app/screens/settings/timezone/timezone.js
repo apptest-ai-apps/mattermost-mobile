@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {intlShape} from 'react-intl';
 
-import {getTimezoneRegion} from 'mattermost-redux/utils/timezone_utils';
+import {getTimezoneRegion} from '@mm-redux/utils/timezone_utils';
 
 import FormattedText from 'app/components/formatted_text';
 import StatusBar from 'app/components/status_bar';
@@ -207,7 +207,6 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
     return {
         container: {
             flex: 1,
-            backgroundColor: theme.centerChannelBg,
         },
         wrapper: {
             backgroundColor: changeOpacity(theme.centerChannelColor, 0.06),

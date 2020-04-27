@@ -6,8 +6,8 @@ import PropTypes from 'prop-types';
 import {IntlProvider} from 'react-intl';
 import {Platform} from 'react-native';
 
-import {Client4} from 'mattermost-redux/client';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import {Client4} from '@mm-redux/client';
+import EventEmitter from '@mm-redux/utils/event_emitter';
 
 import {resetToTeams} from 'app/actions/navigation';
 import {NavigationTypes} from 'app/constants';
@@ -68,7 +68,7 @@ export default class Root extends PureComponent {
         const {currentUrl, theme} = this.props;
         const {intl} = this.providerRef.getChildContext();
 
-        let passProps = {theme};
+        let passProps = null;
         const options = {topBar: {}};
         if (Platform.OS === 'android') {
             options.topBar.rightButtons = [{
@@ -87,7 +87,6 @@ export default class Root extends PureComponent {
 
         if (screen === 'SelectTeam') {
             passProps = {
-                ...passProps,
                 currentUrl,
                 userWithoutTeams: true,
             };

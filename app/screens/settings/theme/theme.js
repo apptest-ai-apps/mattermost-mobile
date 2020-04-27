@@ -6,14 +6,13 @@ import {Text, View} from 'react-native';
 import PropTypes from 'prop-types';
 import {intlShape} from 'react-intl';
 
-import Preferences from 'mattermost-redux/constants/preferences';
+import Preferences from '@mm-redux/constants/preferences';
 
 import StatusBar from 'app/components/status_bar';
 import Section from 'app/screens/settings/section';
 import SectionItem from 'app/screens/settings/section_item';
 import FormattedText from 'app/components/formatted_text';
-import {changeOpacity, makeStyleSheetFromTheme, setNavigatorStyles} from 'app/utils/theme';
-import EphemeralStore from 'app/store/ephemeral_store';
+import {changeOpacity, makeStyleSheetFromTheme} from 'app/utils/theme';
 
 import ThemeTile from './theme_tile';
 
@@ -29,7 +28,6 @@ export default class Theme extends React.PureComponent {
         actions: PropTypes.shape({
             savePreferences: PropTypes.func.isRequired,
         }).isRequired,
-        componentId: PropTypes.string,
         allowedThemes: PropTypes.arrayOf(PropTypes.object),
         customTheme: PropTypes.object,
         isLandscape: PropTypes.bool.isRequired,
@@ -54,14 +52,6 @@ export default class Theme extends React.PureComponent {
             };
         }
         return null;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.theme !== this.props.theme) {
-            EphemeralStore.allNavigationComponentIds.forEach((componentId) => {
-                setNavigatorStyles(componentId, this.props.theme);
-            });
-        }
     }
 
     setTheme = (key) => {
@@ -154,7 +144,6 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
     return {
         container: {
             flex: 1,
-            backgroundColor: theme.centerChannelBg,
         },
         wrapper: {
             backgroundColor: changeOpacity(theme.centerChannelColor, 0.06),

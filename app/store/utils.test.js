@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import initialState from 'app/initial_state';
-import {getStateForReset} from 'app/store/utils';
+import DeviceInfo from 'react-native-device-info';
+
+import initialState from '@store/initial_state';
+import {getStateForReset} from '@store/utils';
 
 /*
 const {currentUserId} = currentState.entities.users;
@@ -20,6 +22,11 @@ describe('getStateForReset', () => {
     const otherUserId = 'other-user-id';
     const currentTeamId = 'current-team-id';
     const currentState = {
+        app: {
+            build: DeviceInfo.getBuildNumber(),
+            version: DeviceInfo.getVersion(),
+            previousVersion: 'previousVersion',
+        },
         entities: {
             users: {
                 currentUserId,
@@ -52,6 +59,11 @@ describe('getStateForReset', () => {
                 },
             },
         },
+        views: {
+            selectServer: {
+                serverUrl: 'localhost:8065',
+            },
+        },
     };
 
     it('should keep the current user\'s ID and profile', () => {
@@ -73,7 +85,12 @@ describe('getStateForReset', () => {
         const {myPreferences} = resetState.entities.preferences;
         const preferenceKeys = Object.keys(myPreferences);
         const themeKeys = preferenceKeys.filter((key) => key.startsWith('theme--'));
-        expect(themeKeys.length).not.toEqual(0);
-        expect(themeKeys.length).toEqual(preferenceKeys.length);
+        expect(themeKeys.length).toEqual(2);
+    });
+
+    it('should set previous version as current', () => {
+        const resetState = getStateForReset(initialState, currentState);
+        const {app} = resetState;
+        expect(app.previousVersion).toStrictEqual(currentState.app.version);
     });
 });

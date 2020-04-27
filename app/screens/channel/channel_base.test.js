@@ -4,7 +4,7 @@
 import React from 'react';
 import {shallow} from 'enzyme';
 
-import Preferences from 'mattermost-redux/constants/preferences';
+import Preferences from '@mm-redux/constants/preferences';
 
 import EphemeralStore from 'app/store/ephemeral_store';
 import * as NavigationActions from 'app/actions/navigation';
@@ -47,7 +47,7 @@ describe('ChannelBase', () => {
                 rightButtonColor: theme.sidebarHeaderTextColor,
             },
             layout: {
-                backgroundColor: theme.centerChannelBg,
+                componentBackgroundColor: theme.centerChannelBg,
             },
         };
     };
@@ -55,6 +55,7 @@ describe('ChannelBase', () => {
     test('should call mergeNavigationOptions on all navigation components when theme changes', () => {
         const mergeNavigationOptions = jest.spyOn(NavigationActions, 'mergeNavigationOptions');
 
+        EphemeralStore.addNavigationComponentId(channelBaseComponentId);
         componentIds.forEach((componentId) => {
             EphemeralStore.addNavigationComponentId(componentId);
         });
@@ -63,10 +64,7 @@ describe('ChannelBase', () => {
             <ChannelBase {...baseProps}/>,
         );
 
-        const themeOptions = optionsForTheme(Preferences.THEMES.default);
-        expect(mergeNavigationOptions.mock.calls).toEqual([
-            [baseProps.componentId, themeOptions],
-        ]);
+        expect(mergeNavigationOptions.mock.calls).toEqual([]);
         mergeNavigationOptions.mockClear();
 
         wrapper.setProps({theme: Preferences.THEMES.mattermostDark});

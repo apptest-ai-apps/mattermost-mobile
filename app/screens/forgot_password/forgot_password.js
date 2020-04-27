@@ -15,7 +15,7 @@ import {
     View,
 } from 'react-native';
 
-import {isEmail} from 'mattermost-redux/utils/helpers';
+import {isEmail} from '@mm-redux/utils/helpers';
 
 import {GlobalStyles} from 'app/styles';
 
@@ -169,7 +169,6 @@ export default class ForgotPassword extends PureComponent {
 
 const style = StyleSheet.create({
     container: {
-        backgroundColor: '#FFFFFF',
         flex: 1,
     },
     innerContainer: {

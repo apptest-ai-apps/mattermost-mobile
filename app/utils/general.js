@@ -4,7 +4,9 @@
 import {Alert} from 'react-native';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 
-import {Posts} from 'mattermost-redux/constants';
+import {Posts} from '@mm-redux/constants';
+
+const INVALID_VERSIONS = ['1.29.0'];
 
 export function fromAutoResponder(post) {
     return Boolean(post.type && (post.type === Posts.SYSTEM_AUTO_RESPONDER));
@@ -77,4 +79,16 @@ export function throttle(fn, limit, ...args) {
             inThrottle = true;
         }
     };
+}
+
+export function isPendingPost(postId, userId) {
+    return postId.startsWith(userId);
+}
+
+export function validatePreviousVersion(previousVersion) {
+    if (!previousVersion || INVALID_VERSIONS.includes(previousVersion)) {
+        return false;
+    }
+
+    return true;
 }

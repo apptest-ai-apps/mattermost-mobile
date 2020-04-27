@@ -10,12 +10,11 @@ import {
 } from 'react-native';
 import {Navigation} from 'react-native-navigation';
 import SafeAreaView from 'app/components/safe_area_view';
-import {General, RequestStatus} from 'mattermost-redux/constants';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import {General, RequestStatus} from '@mm-redux/constants';
+import EventEmitter from '@mm-redux/utils/event_emitter';
 
 import EditChannelInfo from 'app/components/edit_channel_info';
 import {NavigationTypes, ViewTypes} from 'app/constants';
-import {setNavigatorStyles} from 'app/utils/theme';
 import {cleanUpUrlable} from 'app/utils/url';
 import {t} from 'app/utils/i18n';
 import {popTopScreen, setButtons} from 'app/actions/navigation';
@@ -65,7 +64,6 @@ export default class EditChannel extends PureComponent {
         channel: PropTypes.object.isRequired,
         currentTeamUrl: PropTypes.string.isRequired,
         updateChannelRequest: PropTypes.object.isRequired,
-        closeButton: PropTypes.object,
     };
 
     static contextTypes = {
@@ -141,10 +139,6 @@ export default class EditChannel extends PureComponent {
     }
 
     componentDidUpdate(prevProps) {
-        if (prevProps.theme !== this.props.theme) {
-            setNavigatorStyles(prevProps.componentId, this.props.theme);
-        }
-
         if (prevProps.updateChannelRequest !== this.props.updateChannelRequest) {
             switch (this.props.updateChannelRequest.status) {
             case RequestStatus.STARTED:

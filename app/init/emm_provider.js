@@ -3,13 +3,14 @@
 
 import {Alert, Platform} from 'react-native';
 
-import {handleLoginIdChanged} from 'app/actions/views/login';
-import {setServerUrl} from 'app/actions/views/select_server';
-import {getTranslations} from 'app/i18n';
+import {setServerUrl} from '@actions/views/select_server';
+import {getTranslations} from '@i18n';
+import {getCurrentLocale} from '@selectors/i18n';
+import Store from '@store/store';
+import {t} from '@utils/i18n';
+
 import mattermostBucket from 'app/mattermost_bucket';
 import mattermostManaged from 'app/mattermost_managed';
-import {getCurrentLocale} from 'app/selectors/i18n';
-import {t} from 'app/utils/i18n';
 
 import {getAppCredentials} from './credentials';
 
@@ -28,14 +29,13 @@ class EMMProvider {
 
         this.allowOtherServers = true;
         this.emmServerUrl = null;
-        this.emmUsername = null;
     }
 
-    checkIfDeviceIsTrusted = (store) => {
+    checkIfDeviceIsTrusted = () => {
         const isTrusted = mattermostManaged.isTrustedDevice();
 
         if (!isTrusted) {
-            const state = store.getState();
+            const state = Store.redux.getState();
             const locale = getCurrentLocale(state);
             const translations = getTranslations(locale);
             Alert.alert(
@@ -53,10 +53,10 @@ class EMMProvider {
         }
     };
 
-    handleAuthentication = async (store, prompt = true) => {
+    handleAuthentication = async (prompt = true) => {
         this.performingAuthentication = true;
         const isSecured = await mattermostManaged.isDeviceSecure();
-        const state = store.getState();
+        const state = Store.redux.getState();
         const locale = getCurrentLocale(state);
         const translations = getTranslations(locale);
 
@@ -85,12 +85,12 @@ class EMMProvider {
         return true;
     };
 
-    handleManagedConfig = async (store) => {
+    handleManagedConfig = async () => {
         if (this.performingAuthentication) {
             return true;
         }
 
-        const {dispatch} = store;
+        const {dispatch} = Store.redux;
 
         if (LocalConfig.AutoSelectServerUrl) {
             dispatch(setServerUrl(LocalConfig.DefaultServerUrl));
@@ -110,7 +110,6 @@ class EMMProvider {
             const credentials = await getAppCredentials();
             if (!credentials) {
                 this.emmServerUrl = managedConfig.serverUrl;
-                this.emmUsername = managedConfig.username;
 
                 if (managedConfig.allowOtherServers && managedConfig.allowOtherServers === 'false') {
                     this.allowOtherServers = false;
@@ -123,10 +122,6 @@ class EMMProvider {
 
             if (this.emmServerUrl) {
                 dispatch(setServerUrl(this.emmServerUrl));
-            }
-
-            if (this.emmUsername) {
-                dispatch(handleLoginIdChanged(this.emmUsername));
             }
         }
 

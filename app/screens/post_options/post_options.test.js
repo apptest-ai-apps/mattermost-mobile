@@ -5,7 +5,7 @@ import React from 'react';
 import {Alert} from 'react-native';
 import {shallow} from 'enzyme';
 
-import Preferences from 'mattermost-redux/constants/preferences';
+import Preferences from '@mm-redux/constants/preferences';
 
 import PostOptions from './post_options';
 
@@ -121,5 +121,11 @@ describe('PostOptions', () => {
         callback();
         expect(actions.deletePost).toBeCalled();
         expect(actions.removePost).toBeCalled();
+    });
+
+    test('should not show reply option without create_post permission', () => {
+        const wrapper = getWrapper({canPost: false});
+
+        expect(wrapper.findWhere((node) => node.key() === 'reply')).toMatchObject({});
     });
 });

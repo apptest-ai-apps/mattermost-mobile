@@ -3,7 +3,7 @@
 
 import {createSelector} from 'reselect';
 
-import {getCurrentChannelId, getUnreads} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannelId, getUnreads} from '@mm-redux/selectors/entities/channels';
 
 const emptyDraft = {
     draft: '',
@@ -40,7 +40,7 @@ export const getThreadDraft = createSelector(
 );
 
 export function getProfileImageUri(state) {
-    return state.views.user.profileImageUri;
+    return state.views?.user?.profileImageUri;
 }
 
 export const getBadgeCount = createSelector(

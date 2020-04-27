@@ -10,7 +10,7 @@ import {
     View,
 } from 'react-native';
 
-import {Preferences} from 'mattermost-redux/constants';
+import {Preferences} from '@mm-redux/constants';
 
 import {changeOpacity, makeStyleSheetFromTheme} from 'app/utils/theme';
 import {t} from 'app/utils/i18n';
@@ -244,7 +244,6 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
     return {
         container: {
             flex: 1,
-            backgroundColor: theme.centerChannelBg,
         },
         separator: {
             backgroundColor: changeOpacity(theme.centerChannelColor, 0.1),

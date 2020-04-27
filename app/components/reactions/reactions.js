@@ -133,7 +133,7 @@ export default class Reactions extends PureComponent {
     };
 
     render() {
-        const {position, reactions, canAddMoreReactions} = this.props;
+        const {position, reactions, canAddMoreReactions, canAddReaction} = this.props;
         const styles = getStyleSheet(this.props.theme);
 
         if (!reactions) {
@@ -141,7 +141,7 @@ export default class Reactions extends PureComponent {
         }
 
         let addMoreReactions = null;
-        if (canAddMoreReactions) {
+        if (canAddReaction && canAddMoreReactions) {
             addMoreReactions = (
                 <TouchableWithFeedback
                     key='addReaction'
@@ -186,7 +186,7 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
         addReaction: {
             tintColor: changeOpacity(theme.centerChannelColor, 0.5),
             width: 23,
-            height: 20,
+            height: 23,
         },
         reaction: {
             alignItems: 'center',

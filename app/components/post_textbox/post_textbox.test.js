@@ -6,8 +6,8 @@ import {Alert, Image} from 'react-native';
 import assert from 'assert';
 import {shallowWithIntl} from 'test/intl-test-helper';
 
-import Preferences from 'mattermost-redux/constants/preferences';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import Preferences from '@mm-redux/constants/preferences';
+import EventEmitter from '@mm-redux/utils/event_emitter';
 
 import SendButton from 'app/components/send_button';
 import PasteableTextInput from 'app/components/pasteable_text_input';
@@ -63,6 +63,7 @@ describe('PostTextBox', () => {
         valueEvent: '',
         isLandscape: false,
         screenId: 'NavigationScreen1',
+        canPost: true,
         currentChannelMembersCount: 50,
         enableConfirmNotificationsToChannel: true,
         useChannelMentions: true,
@@ -553,6 +554,16 @@ describe('PostTextBox', () => {
         expect(wrapper.state('value')).toEqual('');
         wrapper.setProps({value: 'value', channelId: 'channel-id2'});
         expect(wrapper.state('value')).toEqual('value');
+    });
+
+    test('should be disabled without the create_post permission', () => {
+        const props = {...baseProps, canPost: false};
+
+        const wrapper = shallowWithIntl(
+            <PostTextbox {...props}/>,
+        );
+
+        expect(wrapper.find(PasteableTextInput).prop('editable')).toBe(false);
     });
 });
 

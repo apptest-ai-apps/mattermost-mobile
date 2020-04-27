@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import EventEmitter from '@mm-redux/utils/event_emitter';
 
 import {showModal, showModalOverCurrentContext} from 'app/actions/navigation';
 import SafeAreaView from 'app/components/safe_area_view';
@@ -61,8 +61,6 @@ export default class ChannelBase extends PureComponent {
         this.postTextbox = React.createRef();
         this.keyboardTracker = React.createRef();
 
-        setNavigatorStyles(props.componentId, props.theme);
-
         this.state = {
             channelsRequestFailed: false,
         };
@@ -109,9 +107,10 @@ export default class ChannelBase extends PureComponent {
 
         if (this.props.theme !== prevProps.theme) {
             setNavigatorStyles(this.props.componentId, this.props.theme);
-
             EphemeralStore.allNavigationComponentIds.forEach((componentId) => {
-                setNavigatorStyles(componentId, this.props.theme);
+                if (this.props.componentId !== componentId) {
+                    setNavigatorStyles(componentId, this.props.theme);
+                }
             });
         }
 
@@ -154,7 +153,7 @@ export default class ChannelBase extends PureComponent {
             const passProps = {closeButton};
             const options = {
                 layout: {
-                    backgroundColor: theme.centerChannelBg,
+                    componentBackgroundColor: theme.centerChannelBg,
                 },
                 topBar: {
                     visible: true,

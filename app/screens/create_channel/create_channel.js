@@ -10,13 +10,12 @@ import {
 } from 'react-native';
 import {Navigation} from 'react-native-navigation';
 
-import {General, RequestStatus} from 'mattermost-redux/constants';
-import EventEmitter from 'mattermost-redux/utils/event_emitter';
+import {General, RequestStatus} from '@mm-redux/constants';
+import EventEmitter from '@mm-redux/utils/event_emitter';
 
 import {popTopScreen, dismissModal, setButtons} from 'app/actions/navigation';
 import EditChannelInfo from 'app/components/edit_channel_info';
 import {NavigationTypes} from 'app/constants';
-import {setNavigatorStyles} from 'app/utils/theme';
 
 export default class CreateChannel extends PureComponent {
     static propTypes = {
@@ -75,10 +74,6 @@ export default class CreateChannel extends PureComponent {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (this.props.theme !== nextProps.theme) {
-            setNavigatorStyles(this.props.componentId, nextProps.theme);
-        }
-
         const {createChannelRequest} = nextProps;
 
         if (this.props.createChannelRequest !== createChannelRequest) {

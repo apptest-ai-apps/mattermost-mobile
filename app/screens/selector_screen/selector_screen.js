@@ -9,11 +9,11 @@ import {
     View,
 } from 'react-native';
 
-import {debounce} from 'mattermost-redux/actions/helpers';
-import {General} from 'mattermost-redux/constants';
-import {filterProfilesMatchingTerm} from 'mattermost-redux/utils/user_utils';
-import {filterChannelsMatchingTerm} from 'mattermost-redux/utils/channel_utils';
-import {memoizeResult} from 'mattermost-redux/utils/helpers';
+import {debounce} from '@mm-redux/actions/helpers';
+import {General} from '@mm-redux/constants';
+import {filterProfilesMatchingTerm} from '@mm-redux/utils/user_utils';
+import {filterChannelsMatchingTerm} from '@mm-redux/utils/channel_utils';
+import {memoizeResult} from '@mm-redux/utils/helpers';
 
 import CustomList, {FLATLIST, SECTIONLIST} from 'app/components/custom_list';
 import UserListRow from 'app/components/custom_list/user_list_row';
@@ -27,7 +27,6 @@ import {createProfilesSections, loadingText} from 'app/utils/member_list';
 import {
     changeOpacity,
     makeStyleSheetFromTheme,
-    setNavigatorStyles,
     getKeyboardAppearanceFromTheme,
 } from 'app/utils/theme';
 import {t} from 'app/utils/i18n';
@@ -43,7 +42,6 @@ export default class SelectorScreen extends PureComponent {
             searchProfiles: PropTypes.func.isRequired,
             searchChannels: PropTypes.func.isRequired,
         }),
-        componentId: PropTypes.string,
         currentTeamId: PropTypes.string.isRequired,
         data: PropTypes.arrayOf(PropTypes.object),
         dataSource: PropTypes.string,
@@ -88,12 +86,6 @@ export default class SelectorScreen extends PureComponent {
 
     componentWillUnmount() {
         this.mounted = false;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.theme !== prevProps.theme) {
-            setNavigatorStyles(this.props.componentId, this.props.theme);
-        }
     }
 
     setSearchBarRef = (ref) => {
@@ -308,11 +300,6 @@ export default class SelectorScreen extends PureComponent {
             backgroundColor: changeOpacity(theme.centerChannelColor, 0.2),
             color: theme.centerChannelColor,
             fontSize: 15,
-            ...Platform.select({
-                android: {
-                    marginBottom: -5,
-                },
-            }),
         };
 
         let rowComponent;
@@ -371,10 +358,15 @@ const getStyleFromTheme = makeStyleSheetFromTheme((theme) => {
     return {
         container: {
             flex: 1,
-            backgroundColor: theme.centerChannelBg,
         },
         searchBar: {
             marginVertical: 5,
+            height: 38,
+            ...Platform.select({
+                ios: {
+                    paddingLeft: 8,
+                },
+            }),
         },
         loadingContainer: {
             alignItems: 'center',

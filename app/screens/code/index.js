@@ -3,13 +3,15 @@
 
 import {connect} from 'react-redux';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getTheme} from '@mm-redux/selectors/entities/preferences';
 
+import {isLandscape} from 'app/selectors/device';
 import Code from './code';
 
 function mapStateToProps(state) {
     return {
         theme: getTheme(state),
+        isLandscape: isLandscape(state),
     };
 }
 

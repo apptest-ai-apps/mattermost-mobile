@@ -4,9 +4,25 @@
 import {StyleSheet} from 'react-native';
 import tinyColor from 'tinycolor2';
 
-import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
+import * as ThemeUtils from '@mm-redux/utils/theme_utils';
 
 import {mergeNavigationOptions} from 'app/actions/navigation';
+
+const MODAL_SCREENS_WITHOUT_BACK = [
+    'AddReaction',
+    'ChannelInfo',
+    'ClientUpgrade',
+    'CreateChannel',
+    'EditPost',
+    'ErrorTeamsList',
+    'MoreChannels',
+    'MoreDirectMessages',
+    'Permalink',
+    'SelectTeam',
+    'Settings',
+    'TermsOfService',
+    'UserProfile',
+];
 
 export function makeStyleSheetFromTheme(getStyleFromTheme) {
     return ThemeUtils.makeStyleFromTheme((theme) => {
@@ -33,14 +49,17 @@ export function setNavigatorStyles(componentId, theme) {
             },
             leftButtonColor: theme.sidebarHeaderTextColor,
             rightButtonColor: theme.sidebarHeaderTextColor,
-            backButton: {
-                color: theme.sidebarHeaderTextColor,
-            },
         },
         layout: {
-            backgroundColor: theme.centerChannelBg,
+            componentBackgroundColor: theme.centerChannelBg,
         },
     };
+
+    if (!MODAL_SCREENS_WITHOUT_BACK.includes(componentId)) {
+        options.topBar.backButton = {
+            color: theme.sidebarHeaderTextColor,
+        };
+    }
 
     mergeNavigationOptions(componentId, options);
 }

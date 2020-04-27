@@ -17,26 +17,20 @@ import {getCodeFont} from 'app/utils/markdown';
 import {
     changeOpacity,
     makeStyleSheetFromTheme,
-    setNavigatorStyles,
     getKeyboardAppearanceFromTheme,
 } from 'app/utils/theme';
 import {popTopScreen} from 'app/actions/navigation';
+import {marginHorizontal as margin} from 'app/components/safe_area_view/iphone_x_spacing';
 
 export default class Code extends React.PureComponent {
     static propTypes = {
-        componentId: PropTypes.string,
         theme: PropTypes.object.isRequired,
         content: PropTypes.string.isRequired,
+        isLandscape: PropTypes.bool.isRequired,
     };
 
     componentDidMount() {
         BackHandler.addEventListener('hardwareBackPress', this.handleAndroidBack);
-    }
-
-    componentDidUpdate(prevProps) {
-        if (this.props.theme !== prevProps.theme) {
-            setNavigatorStyles(this.props.componentId, this.props.theme);
-        }
     }
 
     componentWillUnmount() {
@@ -53,6 +47,7 @@ export default class Code extends React.PureComponent {
     };
 
     render() {
+        const {isLandscape} = this.props;
         const style = getStyleSheet(this.props.theme);
 
         const numberOfLines = this.countLines(this.props.content);
@@ -94,7 +89,7 @@ export default class Code extends React.PureComponent {
 
         return (
             <ScrollView
-                style={style.scrollContainer}
+                style={[style.scrollContainer, margin(isLandscape)]}
                 contentContainerStyle={style.container}
             >
                 <View style={lineNumbersStyle}>

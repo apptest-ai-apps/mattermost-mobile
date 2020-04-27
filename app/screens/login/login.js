@@ -24,6 +24,7 @@ import ErrorText from 'app/components/error_text';
 import FormattedText from 'app/components/formatted_text';
 import StatusBar from 'app/components/status_bar';
 import {resetToChannel, goToScreen} from 'app/actions/navigation';
+import mattermostManaged from 'app/mattermost_managed';
 import {preventDoubleTap} from 'app/utils/tap';
 import tracker from 'app/utils/time_tracker';
 import {t} from 'app/utils/i18n';
@@ -38,16 +39,12 @@ export const mfaExpectedErrors = ['mfa.validate_token.authenticate.app_error', '
 export default class Login extends PureComponent {
     static propTypes = {
         actions: PropTypes.shape({
-            handleLoginIdChanged: PropTypes.func.isRequired,
-            handlePasswordChanged: PropTypes.func.isRequired,
             handleSuccessfulLogin: PropTypes.func.isRequired,
             scheduleExpiredNotification: PropTypes.func.isRequired,
             login: PropTypes.func.isRequired,
         }).isRequired,
         config: PropTypes.object.isRequired,
         license: PropTypes.object.isRequired,
-        loginId: PropTypes.string.isRequired,
-        password: PropTypes.string.isRequired,
         isLandscape: PropTypes.bool.isRequired,
     };
 
@@ -57,6 +54,11 @@ export default class Login extends PureComponent {
 
     constructor(props) {
         super(props);
+
+        this.loginRef = React.createRef();
+        this.passwordRef = React.createRef();
+        this.loginId = '';
+        this.password = '';
 
         this.state = {
             error: null,
@@ -68,6 +70,7 @@ export default class Login extends PureComponent {
         Dimensions.addEventListener('change', this.orientationDidChange);
 
         setMfaPreflightDone(false);
+        this.setEmmUsernameIfAvailable();
     }
 
     componentWillUnmount() {
@@ -88,91 +91,22 @@ export default class Login extends PureComponent {
         const {intl} = this.context;
         const screen = 'MFA';
         const title = intl.formatMessage({id: 'mobile.routes.mfa', defaultMessage: 'Multi-factor Authentication'});
+        const loginId = this.loginId;
+        const password = this.password;
 
-        goToScreen(screen, title, {onMfaComplete: this.checkLoginResponse});
+        goToScreen(screen, title, {onMfaComplete: this.checkLoginResponse, loginId, password});
     };
 
     blur = () => {
-        this.loginId.blur();
-        this.passwd.blur();
-        Keyboard.dismiss();
-    };
-
-    preSignIn = preventDoubleTap(() => {
-        this.setState({error: null, isLoading: true});
-        Keyboard.dismiss();
-        InteractionManager.runAfterInteractions(async () => {
-            if (!this.props.loginId) {
-                t('login.noEmail');
-                t('login.noEmailLdapUsername');
-                t('login.noEmailUsername');
-                t('login.noEmailUsernameLdapUsername');
-                t('login.noLdapUsername');
-                t('login.noUsername');
-                t('login.noUsernameLdapUsername');
-
-                // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
-                let msgId = 'login.no';
-                if (this.props.config.EnableSignInWithEmail === 'true') {
-                    msgId += 'Email';
-                }
-                if (this.props.config.EnableSignInWithUsername === 'true') {
-                    msgId += 'Username';
-                }
-                if (this.props.license.IsLicensed === 'true' && this.props.config.EnableLdap === 'true') {
-                    msgId += 'LdapUsername';
-                }
-
-                this.setState({
-                    isLoading: false,
-                    error: {
-                        intl: {
-                            id: msgId,
-                            defaultMessage: '',
-                            values: {
-                                ldapUsername: this.props.config.LdapLoginFieldName ||
-                                this.context.intl.formatMessage({
-                                    id: 'login.ldapUsernameLower',
-                                    defaultMessage: 'AD/LDAP username',
-                                }),
-                            },
-                        },
-                    },
-                });
-                return;
-            }
-
-            if (!this.props.password) {
-                this.setState({
-                    isLoading: false,
-                    error: {
-                        intl: {
-                            id: t('login.noPassword'),
-                            defaultMessage: 'Please enter your password',
-                        },
-                    },
-                });
-                return;
-            }
-
-            this.signIn();
-        });
-    });
-
-    scheduleSessionExpiredNotification = () => {
-        const {intl} = this.context;
-        const {actions} = this.props;
-
-        actions.scheduleExpiredNotification(intl);
-    };
-
-    signIn = () => {
-        const {actions, loginId, password} = this.props;
-        const {isLoading} = this.state;
-        if (isLoading) {
-            actions.login(loginId.toLowerCase(), password).
-                then(this.checkLoginResponse);
+        if (this.loginRef.current) {
+            this.loginRef.current.blur();
         }
+
+        if (this.passwordRef.current) {
+            this.passwordRef.current.blur();
+        }
+
+        Keyboard.dismiss();
     };
 
     checkLoginResponse = (data) => {
@@ -228,6 +162,14 @@ export default class Login extends PureComponent {
         return '';
     }
 
+    forgotPassword = () => {
+        const {intl} = this.context;
+        const screen = 'ForgotPassword';
+        const title = intl.formatMessage({id: 'password_form.title', defaultMessage: 'Password Reset'});
+
+        goToScreen(screen, title);
+    }
+
     getLoginErrorMessage = (error) => {
         return (
             this.getServerErrorForLogin(error) ||
@@ -270,33 +212,111 @@ export default class Login extends PureComponent {
         return error.message;
     };
 
-    loginRef = (ref) => {
-        this.loginId = ref;
+    handleLoginChange = (text) => {
+        this.loginId = text;
     };
 
-    passwordRef = (ref) => {
-        this.passwd = ref;
-    };
-
-    passwordFocus = () => {
-        this.passwd.focus();
+    handlePasswordChange = (text) => {
+        this.password = text;
     };
 
     orientationDidChange = () => {
         this.scroll.scrollToPosition(0, 0, true);
     };
 
+    passwordFocus = () => {
+        if (this.passwordRef.current) {
+            this.passwordRef.current.focus();
+        }
+    };
+
+    preSignIn = preventDoubleTap(() => {
+        this.setState({error: null, isLoading: true});
+        Keyboard.dismiss();
+        InteractionManager.runAfterInteractions(async () => {
+            if (!this.loginId) {
+                t('login.noEmail');
+                t('login.noEmailLdapUsername');
+                t('login.noEmailUsername');
+                t('login.noEmailUsernameLdapUsername');
+                t('login.noLdapUsername');
+                t('login.noUsername');
+                t('login.noUsernameLdapUsername');
+
+                // it's slightly weird to be constructing the message ID, but it's a bit nicer than triply nested if statements
+                let msgId = 'login.no';
+                if (this.props.config.EnableSignInWithEmail === 'true') {
+                    msgId += 'Email';
+                }
+                if (this.props.config.EnableSignInWithUsername === 'true') {
+                    msgId += 'Username';
+                }
+                if (this.props.license.IsLicensed === 'true' && this.props.config.EnableLdap === 'true') {
+                    msgId += 'LdapUsername';
+                }
+
+                this.setState({
+                    isLoading: false,
+                    error: {
+                        intl: {
+                            id: msgId,
+                            defaultMessage: '',
+                            values: {
+                                ldapUsername: this.props.config.LdapLoginFieldName ||
+                                this.context.intl.formatMessage({
+                                    id: 'login.ldapUsernameLower',
+                                    defaultMessage: 'AD/LDAP username',
+                                }),
+                            },
+                        },
+                    },
+                });
+                return;
+            }
+
+            if (!this.password) {
+                this.setState({
+                    isLoading: false,
+                    error: {
+                        intl: {
+                            id: t('login.noPassword'),
+                            defaultMessage: 'Please enter your password',
+                        },
+                    },
+                });
+                return;
+            }
+
+            this.signIn();
+        });
+    });
+
+    scheduleSessionExpiredNotification = () => {
+        const {intl} = this.context;
+        const {actions} = this.props;
+
+        actions.scheduleExpiredNotification(intl);
+    };
+
     scrollRef = (ref) => {
         this.scroll = ref;
     };
 
-    forgotPassword = () => {
-        const {intl} = this.context;
-        const screen = 'ForgotPassword';
-        const title = intl.formatMessage({id: 'password_form.title', defaultMessage: 'Password Reset'});
-
-        goToScreen(screen, title);
+    setEmmUsernameIfAvailable = async () => {
+        const managedConfig = await mattermostManaged.getConfig();
+        if (managedConfig?.username && this.loginRef.current) {
+            this.loginRef.current.setNativeProps({text: managedConfig?.username});
+        }
     }
+
+    signIn = () => {
+        const {actions} = this.props;
+        const {isLoading} = this.state;
+        if (isLoading) {
+            actions.login(this.loginId.toLowerCase(), this.password).
+                then(this.checkLoginResponse);
+        }
+    };
 
     render() {
         const {isLoading} = this.state;
@@ -382,35 +402,33 @@ export default class Login extends PureComponent {
                         </View>
                         <ErrorText error={this.state.error}/>
                         <TextInput
-                            ref={this.loginRef}
-                            value={this.props.loginId}
-                            onChangeText={this.props.actions.handleLoginIdChanged}
-                            style={GlobalStyles.inputBox}
-                            placeholder={this.createLoginPlaceholder()}
-                            placeholderTextColor={changeOpacity('#000', 0.5)}
-                            autoCorrect={false}
                             autoCapitalize='none'
-                            keyboardType='email-address'
-                            returnKeyType='next'
-                            underlineColorAndroid='transparent'
-                            onSubmitEditing={this.passwordFocus}
+                            autoCorrect={false}
                             blurOnSubmit={false}
                             disableFullscreenUI={true}
+                            keyboardType='email-address'
+                            onChangeText={this.handleLoginChange}
+                            onSubmitEditing={this.passwordFocus}
+                            placeholder={this.createLoginPlaceholder()}
+                            placeholderTextColor={changeOpacity('#000', 0.5)}
+                            ref={this.loginRef}
+                            returnKeyType='next'
+                            style={GlobalStyles.inputBox}
+                            underlineColorAndroid='transparent'
                         />
                         <TextInput
-                            ref={this.passwordRef}
-                            value={this.props.password}
-                            onChangeText={this.props.actions.handlePasswordChanged}
+                            autoCapitalize='none'
+                            autoCorrect={false}
+                            disableFullscreenUI={true}
+                            onChangeText={this.handlePasswordChange}
+                            onSubmitEditing={this.preSignIn}
                             style={GlobalStyles.inputBox}
                             placeholder={this.context.intl.formatMessage({id: 'login.password', defaultMessage: 'Password'})}
                             placeholderTextColor={changeOpacity('#000', 0.5)}
-                            secureTextEntry={true}
-                            autoCorrect={false}
-                            autoCapitalize='none'
-                            underlineColorAndroid='transparent'
+                            ref={this.passwordRef}
                             returnKeyType='go'
-                            onSubmitEditing={this.preSignIn}
-                            disableFullscreenUI={true}
+                            secureTextEntry={true}
+                            underlineColorAndroid='transparent'
                         />
                         {proceed}
                         {forgotPassword}
@@ -423,7 +441,6 @@ export default class Login extends PureComponent {
 
 const style = StyleSheet.create({
     container: {
-        backgroundColor: '#FFFFFF',
         flex: 1,
     },
     innerContainer: {

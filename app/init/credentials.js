@@ -4,7 +4,7 @@
 import AsyncStorage from '@react-native-community/async-storage';
 import * as KeyChain from 'react-native-keychain';
 
-import {Client4} from 'mattermost-redux/client';
+import {Client4} from '@mm-redux/client';
 
 import mattermostManaged from 'app/mattermost_managed';
 import EphemeralStore from 'app/store/ephemeral_store';
@@ -54,7 +54,7 @@ export const getAppCredentials = async () => {
 export const removeAppCredentials = async () => {
     const url = await getCurrentServerUrl();
 
-    Client4.setCSRF(null);
+    Client4.setCSRF('');
     Client4.serverVersion = '';
     Client4.setUserId('');
     Client4.setToken('');
@@ -64,7 +64,6 @@ export const removeAppCredentials = async () => {
         KeyChain.resetInternetCredentials(url);
     }
 
-    KeyChain.resetGenericPassword();
     EphemeralStore.currentServerUrl = null;
     AsyncStorage.removeItem(CURRENT_SERVER);
 };
@@ -90,9 +89,7 @@ async function getCredentialsFromGenericKeyChain() {
                     Client4.setToken(token);
                     await setCSRFFromCookie(url);
 
-                    // Migration: remove the generic credentials and add a server specific one
                     setAppCredentials(deviceToken, currentUserId, token, url);
-                    KeyChain.resetGenericPassword();
 
                     return {
                         username: usernameParsed,

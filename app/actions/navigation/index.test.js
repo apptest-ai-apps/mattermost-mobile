@@ -3,20 +3,27 @@
 
 import {Platform} from 'react-native';
 import {Navigation} from 'react-native-navigation';
-
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
 import merge from 'deepmerge';
 
-import Preferences from 'mattermost-redux/constants/preferences';
+import * as NavigationActions from '@actions/navigation';
+import Preferences from '@mm-redux/constants/preferences';
+import EphemeralStore from '@store/ephemeral_store';
+import intitialState from '@store/initial_state';
+import Store from '@store/store';
 
-import EphemeralStore from 'app/store/ephemeral_store';
-import * as NavigationActions from 'app/actions/navigation';
-
-jest.unmock('app/actions/navigation');
-jest.mock('app/store/ephemeral_store', () => ({
+jest.unmock('@actions/navigation');
+jest.mock('@store/ephemeral_store', () => ({
     getNavigationTopComponentId: jest.fn(),
+    clearNavigationComponents: jest.fn(),
 }));
 
-describe('app/actions/navigation', () => {
+const mockStore = configureMockStore([thunk]);
+const store = mockStore(intitialState);
+Store.redux = store;
+
+describe('@actions/navigation', () => {
     const topComponentId = 'top-component-id';
     const name = 'name';
     const title = 'title';
@@ -52,6 +59,7 @@ describe('app/actions/navigation', () => {
                                     height: 0,
                                     backButton: {
                                         visible: false,
+                                        color: theme.sidebarHeaderTextColor,
                                     },
                                     background: {
                                         color: theme.sidebarHeaderBg,
@@ -272,6 +280,7 @@ describe('app/actions/navigation', () => {
         const showModalOverCurrentContextOptions = {
             modalPresentationStyle: 'overCurrentContext',
             layout: {
+                backgroundColor: 'transparent',
                 componentBackgroundColor: 'transparent',
             },
             topBar: {
@@ -442,6 +451,10 @@ describe('app/actions/navigation', () => {
         const showOverlay = jest.spyOn(Navigation, 'showOverlay');
 
         const defaultOptions = {
+            layout: {
+                backgroundColor: 'transparent',
+                componentBackgroundColor: 'transparent',
+            },
             overlay: {
                 interceptTouchOutside: false,
             },

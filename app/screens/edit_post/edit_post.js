@@ -6,11 +6,12 @@ import {intlShape} from 'react-intl';
 import {
     Platform,
     View,
+    Keyboard,
 } from 'react-native';
 import {Navigation} from 'react-native-navigation';
 import {KeyboardTrackingView} from 'react-native-keyboard-tracking-view';
 
-import {RequestStatus} from 'mattermost-redux/constants';
+import {RequestStatus} from '@mm-redux/constants';
 
 import Autocomplete, {AUTOCOMPLETE_MAX_HEIGHT} from 'app/components/autocomplete';
 import ErrorText from 'app/components/error_text';
@@ -22,7 +23,6 @@ import {switchKeyboardForCodeBlocks} from 'app/utils/markdown';
 import {
     changeOpacity,
     makeStyleSheetFromTheme,
-    setNavigatorStyles,
     getKeyboardAppearanceFromTheme,
 } from 'app/utils/theme';
 import {t} from 'app/utils/i18n';
@@ -37,7 +37,6 @@ export default class EditPost extends PureComponent {
         closeButton: PropTypes.object,
         deviceHeight: PropTypes.number,
         deviceWidth: PropTypes.number,
-        editPostRequest: PropTypes.object.isRequired,
         post: PropTypes.object.isRequired,
         theme: PropTypes.object.isRequired,
         isLandscape: PropTypes.bool.isRequired,
@@ -81,32 +80,6 @@ export default class EditPost extends PureComponent {
         this.focus();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props.theme !== nextProps.theme) {
-            setNavigatorStyles(this.props.componentId, nextProps.theme);
-        }
-
-        const {editPostRequest} = nextProps;
-
-        if (this.props.editPostRequest !== editPostRequest) {
-            switch (editPostRequest.status) {
-            case RequestStatus.STARTED:
-                this.emitEditing(true);
-                this.setState({error: null, editing: true});
-                break;
-            case RequestStatus.SUCCESS:
-                this.emitEditing(false);
-                this.setState({error: null, editing: false});
-                this.close();
-                break;
-            case RequestStatus.FAILURE:
-                this.emitEditing(false);
-                this.setState({error: editPostRequest.error, editing: false});
-                break;
-            }
-        }
-    }
-
     navigationButtonPressed({buttonId}) {
         switch (buttonId) {
         case 'close-edit-post':
@@ -119,6 +92,7 @@ export default class EditPost extends PureComponent {
     }
 
     close = () => {
+        Keyboard.dismiss();
         dismissModal();
     };
 
@@ -139,17 +113,37 @@ export default class EditPost extends PureComponent {
     };
 
     focus = () => {
-        this.messageInput.focus();
+        if (this.messageInput) {
+            this.messageInput.focus();
+        }
     };
 
     messageRef = (ref) => {
         this.messageInput = ref;
     };
 
-    onEditPost = () => {
+    onEditPost = async () => {
         const {message} = this.state;
-        const post = Object.assign({}, this.props.post, {message});
-        this.props.actions.editPost(post);
+        const {post, actions} = this.props;
+        const editedPost = Object.assign({}, post, {message});
+
+        this.setState({
+            editing: true,
+            error: null,
+        });
+
+        this.emitEditing(true);
+        const {error} = await actions.editPost(editedPost);
+        this.emitEditing(false);
+
+        if (error) {
+            this.setState({
+                editing: false,
+                error,
+            }, this.focus);
+        } else {
+            this.setState({editing: false}, this.close);
+        }
     };
 
     onPostChangeText = (message) => {
@@ -233,7 +227,6 @@ export default class EditPost extends PureComponent {
                             multiline={true}
                             numberOfLines={10}
                             style={[style.input, {height}]}
-                            autoFocus={true}
                             placeholder={{id: t('edit_post.editPost'), defaultMessage: 'Edit the post...'}}
                             placeholderTextColor={changeOpacity(theme.centerChannelColor, 0.4)}
                             underlineColorAndroid='transparent'
@@ -263,7 +256,6 @@ const getStyleSheet = makeStyleSheetFromTheme((theme) => {
     return {
         container: {
             flex: 1,
-            backgroundColor: theme.centerChannelBg,
         },
         scrollView: {
             flex: 1,

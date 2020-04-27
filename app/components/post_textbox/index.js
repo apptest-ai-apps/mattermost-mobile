@@ -4,16 +4,16 @@
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-import {General, Permissions} from 'mattermost-redux/constants';
-import {createPost} from 'mattermost-redux/actions/posts';
-import {setStatus} from 'mattermost-redux/actions/users';
-import {getCurrentChannel, isCurrentChannelReadOnly, getCurrentChannelStats} from 'mattermost-redux/selectors/entities/channels';
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {canUploadFilesOnMobile, getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import {getChannelTimezones} from 'mattermost-redux/actions/channels';
+import {isMinimumServerVersion} from '@mm-redux/utils/helpers';
+import {General, Permissions} from '@mm-redux/constants';
+import {createPost} from '@mm-redux/actions/posts';
+import {setStatus} from '@mm-redux/actions/users';
+import {getCurrentChannel, isCurrentChannelReadOnly, getCurrentChannelStats} from '@mm-redux/selectors/entities/channels';
+import {haveIChannelPermission} from '@mm-redux/selectors/entities/roles';
+import {canUploadFilesOnMobile, getConfig} from '@mm-redux/selectors/entities/general';
+import {getTheme} from '@mm-redux/selectors/entities/preferences';
+import {getCurrentUserId, getStatusForUserId} from '@mm-redux/selectors/entities/users';
+import {getChannelTimezones} from '@mm-redux/actions/channels';
 
 import {executeCommand} from 'app/actions/views/command';
 import {addReactionToLatestPost} from 'app/actions/views/emoji';
@@ -30,7 +30,7 @@ import PostTextbox from './post_textbox';
 
 const MAX_MESSAGE_LENGTH = 4000;
 
-function mapStateToProps(state, ownProps) {
+export function mapStateToProps(state, ownProps) {
     const currentDraft = ownProps.rootId ? getThreadDraft(state, ownProps.rootId) : getCurrentChannelDraft(state);
     const config = getConfig(state);
 
@@ -51,8 +51,18 @@ function mapStateToProps(state, ownProps) {
     const currentChannelMembersCount = currentChannelStats?.member_count || 0; // eslint-disable-line camelcase
     const isTimezoneEnabled = config?.ExperimentalTimezone === 'true';
 
+    let canPost = true;
     let useChannelMentions = true;
     if (isMinimumServerVersion(state.entities.general.serverVersion, 5, 22)) {
+        canPost = haveIChannelPermission(
+            state,
+            {
+                channel: currentChannel.id,
+                team: currentChannel.team_id,
+                permission: Permissions.CREATE_POST,
+            },
+        );
+
         useChannelMentions = haveIChannelPermission(
             state,
             {
@@ -83,6 +93,7 @@ function mapStateToProps(state, ownProps) {
         currentChannelMembersCount,
         isTimezoneEnabled,
         isLandscape: isLandscape(state),
+        canPost,
         useChannelMentions,
     };
 }

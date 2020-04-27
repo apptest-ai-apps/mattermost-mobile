@@ -25,7 +25,7 @@ import RNFetchBlob from 'rn-fetch-blob';
 
 import merge from 'deepmerge';
 
-import {Client4} from 'mattermost-redux/client';
+import {Client4} from '@mm-redux/client';
 
 import ErrorText from 'app/components/error_text';
 import FormattedText from 'app/components/formatted_text';
@@ -65,6 +65,10 @@ export default class SelectServer extends PureComponent {
         license: PropTypes.object,
         minVersion: PropTypes.string,
         serverUrl: PropTypes.string.isRequired,
+    };
+
+    static defaultProps = {
+        allowOtherServers: true,
     };
 
     static contextTypes = {
@@ -159,11 +163,18 @@ export default class SelectServer extends PureComponent {
     };
 
     goToNextScreen = (screen, title, passProps = {}, navOptions = {}) => {
+        const {allowOtherServers} = this.props;
+        let visible = !LocalConfig.AutoSelectServerUrl;
+
+        if (!allowOtherServers) {
+            visible = false;
+        }
+
         const defaultOptions = {
-            popGesture: !LocalConfig.AutoSelectServerUrl,
+            popGesture: visible,
             topBar: {
-                visible: !LocalConfig.AutoSelectServerUrl,
-                height: LocalConfig.AutoSelectServerUrl ? 0 : null,
+                visible,
+                height: visible ? null : 0,
             },
         };
         const options = merge(defaultOptions, navOptions);
