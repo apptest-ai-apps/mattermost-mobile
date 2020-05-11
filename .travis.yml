@@ -28,6 +28,7 @@ jobs:
       git clone https://github.com/apptestai/ci_addon
       export binary_path="ios/Mattermost.ipa"
       export project_id='1100'
+      export time_limit="5"
       bash ./ci_addon/step.sh
 
   - stage: build and test
