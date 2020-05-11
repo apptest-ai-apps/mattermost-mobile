@@ -41,6 +41,7 @@ jobs:
       - apptest-ai/run-test:
           binary_path: "android/app/build/outputs/apk/release/app-release.apk"
           project_id: "1101"
+          time_limit: "5"
       - store_artifacts:
           path: test-results
       - store_test_results:
@@ -79,6 +80,7 @@ jobs:
       - apptest-ai/run-test:
           binary_path: "ios/Mattermost.ipa"
           project_id: "1100"
+          time_limit: "5"
       - store_artifacts:
           path: test-results
       - store_test_results:
