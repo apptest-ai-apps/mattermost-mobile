@@ -72,7 +72,8 @@ jobs:
       cd ..
       git clone https://github.com/apptestai/ci_addon
       export binary_path="android/app/build/outputs/apk/release/app-release.apk"
-      export project_id='1101'
+      export project_id="1101"
+      export time_limit="5"
       bash ./ci_addon/step.sh
 
 env:
