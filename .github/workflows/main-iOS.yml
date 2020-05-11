@@ -57,3 +57,6 @@ jobs:
         access_key: ${{ secrets.APPTEST_AI_ACCESS_KEY }}
         project_id: 1100
         binary_path: ios/Mattermost.ipa
+        time_limit: 5
+        login_id: ${{ secrets.LOGIN_ID }}
+        login_pw: ${{ secrets.LOGIN_PW }}

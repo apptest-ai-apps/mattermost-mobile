@@ -49,3 +49,6 @@ jobs:
         access_key: ${{ secrets.APPTEST_AI_ACCESS_KEY }}
         project_id: 1101 
         binary_path: android/app/build/outputs/apk/release/app-release.apk
+        time_limit: 5
+        login_id: ${{ secrets.LOGIN_ID }}
+        login_pw: ${{ secrets.LOGIN_PW }}
