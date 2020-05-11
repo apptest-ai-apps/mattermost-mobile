@@ -52,6 +52,7 @@ jobs:
         access_key: '$(APPTEST_AI_ACCESS_KEY)'
         project_id: '1101'
         binary_path: 'android/app/build/outputs/apk/release/app-release.apk'
+        time_limit: 5
 
   - job: build_ios
     pool:
@@ -97,3 +98,4 @@ jobs:
         access_key: '$(APPTEST_AI_ACCESS_KEY)'
         project_id: '1100'
         binary_path: 'ios/Mattermost.ipa'
+        time_limit: 5
